@@ -2,6 +2,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 
+const { validateEmail } = require('./middlewares/validateEmail');
+const { validatePassword } = require('./middlewares/validatePassword');
+
 const app = express();
 app.use(bodyParser.json());
 
@@ -15,13 +18,14 @@ app.get('/', (_request, response) => {
 
 // START
 
-function tokenRandom(tamanho) {
-  let stringAleatoria = '';
-  const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < tamanho; i += 1) {
-      stringAleatoria += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+// Function to generate token
+function tokenRandom(size) {
+  let token = '';
+  const character = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < size; i += 1) {
+      token += character.charAt(Math.floor(Math.random() * character.length));
   }
-  return stringAleatoria;
+  return token;
 }
 
 // GET all speakers
@@ -40,7 +44,7 @@ app.get('/talker/:id', (req, res) => {
 });
 
 // POST login
-app.post('/login', (req, res) => {
+app.post('/login', validateEmail, validatePassword, (req, res) => {
   const { email, password } = req.body;
   fs.writeFileSync('src/talker.json', JSON.stringify({ email, password }));
 
