@@ -25,6 +25,16 @@ app.get('/', (_request, response) => {
 
 const pathFile = 'src/talker.json';
 
+// GET /talker/search?q=searchTerm
+app.get('/talker/search',
+  validateAuthentication,
+  (req, res) => {
+  const { q } = req.query;
+  const talkers = JSON.parse(fs.readFileSync(pathFile));
+  const arr = talkers.filter((e) => e.name.includes(q));
+  res.status(200).json(arr);
+});
+
 // GET all speakers
 app.get('/talker', (req, res) => {
   const arrTalkers = JSON.parse(fs.readFileSync(pathFile, 'utf8'));
