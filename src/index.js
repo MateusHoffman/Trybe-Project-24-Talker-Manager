@@ -57,6 +57,24 @@ app.post('/talker',
   res.status(201).json(addNewTalker);
 });
 
+// PUT /talker/:id
+app.put('/talker/:id',
+  validateAuthentication,
+  validateName, validateAge, validateTalk,
+  (req, res) => {
+  const id = Number(req.params.id);
+  const talkers = JSON.parse(fs.readFileSync('src/talker.json'));
+  
+  talkers.filter((e) => e.id !== id);
+  const update = { id, ...req.body };
+
+  talkers.push(update);
+  fs.writeFileSync('src/talker.json', JSON.stringify(talkers));
+
+  console.log(talkers);
+  res.status(200).json(update);
+});
+
 // END
 
 app.listen(PORT, () => {
