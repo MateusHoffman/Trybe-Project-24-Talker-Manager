@@ -23,15 +23,17 @@ app.get('/', (_request, response) => {
 
 // START
 
+const pathFile = 'src/talker.json';
+
 // GET all speakers
 app.get('/talker', (req, res) => {
-  const arrTalkers = JSON.parse(fs.readFileSync('src/talker.json', 'utf8'));
+  const arrTalkers = JSON.parse(fs.readFileSync(pathFile, 'utf8'));
   res.status(200).json(arrTalkers);
 });
 
 // GET one talker
 app.get('/talker/:id', (req, res) => {
-  const arrTalkers = JSON.parse(fs.readFileSync('src/talker.json', 'utf8'));
+  const arrTalkers = JSON.parse(fs.readFileSync(pathFile, 'utf8'));
   const objTalker = arrTalkers.find((talker) => talker.id === Number(req.params.id));
   
   if (objTalker) return res.status(200).json(objTalker);
@@ -53,7 +55,7 @@ app.post('/talker',
   const addNewTalker = { id: talkers.length + 1, name, age, talk };
 
   talkers.push(addNewTalker);
-  fs.writeFileSync('src/talker.json', JSON.stringify(talkers));
+  fs.writeFileSync(pathFile, JSON.stringify(talkers));
   res.status(201).json(addNewTalker);
 });
 
@@ -69,10 +71,20 @@ app.put('/talker/:id',
   const update = { id, ...req.body };
 
   talkers.push(update);
-  fs.writeFileSync('src/talker.json', JSON.stringify(talkers));
-
-  console.log(talkers);
+  fs.writeFileSync(pathFile, JSON.stringify(talkers));
   res.status(200).json(update);
+});
+
+// DELETE /talker/:id
+app.delete('/talker/:id',
+  validateAuthentication,
+  (req, res) => {
+  const id = Number(req.params.id);
+  const talkers = JSON.parse(fs.readFileSync('src/talker.json'));
+  
+  const newArr = talkers.filter((e) => e.id !== id);
+  fs.writeFileSync(pathFile, JSON.stringify(newArr));
+  res.status(204).json();
 });
 
 // END
