@@ -1,9 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const { validateEmail } = require('./middlewares/validateEmail');
 const { validatePassword } = require('./middlewares/validatePassword');
+const { validateAuthentication } = require('./middlewares/validateAuthentication');
+const { validateName } = require('./middlewares/validateName');
+const { validateAge } = require('./middlewares/validateAge');
+const { validateTalk } = require('./middlewares/validateTalk');
 
 const app = express();
 app.use(bodyParser.json());
@@ -18,38 +23,38 @@ app.get('/', (_request, response) => {
 
 // START
 
-// Function to generate token
-function tokenRandom(size) {
-  let token = '';
-  const character = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < size; i += 1) {
-      token += character.charAt(Math.floor(Math.random() * character.length));
-  }
-  return token;
-}
-
 // GET all speakers
 app.get('/talker', (req, res) => {
-  const arrSpeakers = JSON.parse(fs.readFileSync('src/talker.json', 'utf8'));
-  res.status(200).json(arrSpeakers);
+  const arrTalkers = JSON.parse(fs.readFileSync('src/talker.json', 'utf8'));
+  res.status(200).json(arrTalkers);
 });
 
-// GET one speaker
+// GET one talker
 app.get('/talker/:id', (req, res) => {
-  const arrSpeakers = JSON.parse(fs.readFileSync('src/talker.json', 'utf8'));
-  const objSpeaker = arrSpeakers.find((speaker) => speaker.id === Number(req.params.id));
+  const arrTalkers = JSON.parse(fs.readFileSync('src/talker.json', 'utf8'));
+  const objTalker = arrTalkers.find((talker) => talker.id === Number(req.params.id));
   
-  if (objSpeaker) return res.status(200).json(objSpeaker);
+  if (objTalker) return res.status(200).json(objTalker);
   return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
 });
 
-// POST login
+// POST /login
 app.post('/login', validateEmail, validatePassword, (req, res) => {
-  const { email, password } = req.body;
-  fs.writeFileSync('src/talker.json', JSON.stringify({ email, password }));
+  res.status(200).json({ token: crypto.randomBytes(8).toString('hex') });
+});
 
-  const token = tokenRandom(16);
-  return res.status(200).json({ token });
+// POST /talker
+app.post('/talker',
+  validateAuthentication, validateName, validateAge, validateTalk,
+  (req, res) => {
+  const { name, age, talk } = req.body;
+  const talkers = JSON.parse(fs.readFileSync('src/talker.json'));
+
+  const addNewTalker = { id: talkers.length + 1, name, age, talk };
+
+  talkers.push(addNewTalker);
+  fs.writeFileSync('src/talker.json', JSON.stringify(talkers));
+  res.status(201).json(addNewTalker);
 });
 
 // END
